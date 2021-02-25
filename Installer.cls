@@ -32,11 +32,25 @@ XData setup
       />
 
   </Namespace>
-    <Invoke Class="App.Installer" Method="SetDispatchClass">
+  <Invoke Class="App.Installer" Method="SetDispatchClass">
     <Arg Value="${restapp}"/>
     <Arg Value="community.objectscript.RESTExample"/>
   </Invoke>
-
+  <Invoke Class="App.Installer" Method="EnableAnalytics">
+    <Arg Value="/csp/${app}"/>
+  </Invoke>
+  <Invoke Class="App.Installer" Method="LoadTXTNews">
+    <Arg Value="${Namespace}"/>
+    <Arg Value="/opt/irisapp/txtdata/NYT"/>
+  </Invoke>
+  <Invoke Class="App.Installer" Method="BuildNLPDomain">
+    <Arg Value="${Namespace}"/>
+    <Arg Value="Aviation.ReportDomain"/>
+  </Invoke>
+  <Invoke Class="App.Installer" Method="BuildNLPDomain">
+    <Arg Value="${Namespace}"/>
+    <Arg Value="INLP.Domain.NewsDom"/>
+  </Invoke>
 
 </Manifest>
 }
@@ -60,5 +74,35 @@ ClassMethod SetDispatchClass(pApp As %String, pClass As %String) As %Status
   Set tSC = ##class(Security.Applications).Modify(pApp, .webProperties)
   Quit tSC
 }
+
+ClassMethod EnableAnalytics(pApp As %String) As %Status
+{
+  New $Namespace
+  Set $Namespace = "%SYS"
+  Set tSC = ##class(Security.Applications).Get(pApp, .webProperties)
+  If $$$ISERR(tSC) {
+    Quit tSC
+  }
+  
+  Set webProperties("DeepSeeEnabled") = 1
+  Set tSC = ##class(Security.Applications).Modify(pApp, .webProperties)
+  Quit tSC
+}
+
+ClassMethod LoadTXTNews(pNamespace As %String, pPath As %String)
+{
+  New $Namespace
+  Set $Namespace = pNamespace
+  Do ##class(INLP.Utils).LoadData(pPath)
+}
+
+ClassMethod BuildNLPDomain(pNamespace As %String, pDomain As %String) As %Status
+{
+  New $Namespace
+  Set $Namespace = pNamespace
+  Set tSC = $CLASSMETHOD(pDomain,"%Build")
+  Quit tSC
+}
+
 
 }

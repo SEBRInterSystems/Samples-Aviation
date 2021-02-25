@@ -1,6 +1,4 @@
-ARG IMAGE=intersystems/iris:2019.1.0S.111.0
-ARG IMAGE=store/intersystems/iris-community:2019.3.0.309.0
-ARG IMAGE=store/intersystems/iris-community:2019.4.0.379.0
+ARG IMAGE=containers.intersystems.com/intersystems/iris:2020.4.0.524.0
 FROM $IMAGE
 
 USER root
@@ -8,20 +6,13 @@ USER root
 WORKDIR /opt/irisapp
 RUN chown ${ISC_PACKAGE_MGRUSER}:${ISC_PACKAGE_IRISGROUP} /opt/irisapp
 
-
 USER irisowner
-
-RUN mkdir -p /tmp/deps \
-
- && cd /tmp/deps \
-
- && wget -q https://pm.community.intersystems.com/packages/zpm/latest/installer -O zpm.xml
-
 
 COPY  Installer.cls .
 COPY  src src
-COPY  gbl src/gbl
+COPY  src/gbl gbl
 COPY irissession.sh /
+COPY data txtdata
 
 # running IRIS and open IRIS termninal in USER namespace
 SHELL ["/irissession.sh"]
@@ -31,10 +22,8 @@ SHELL ["/irissession.sh"]
 RUN \
   do $SYSTEM.OBJ.Load("Installer.cls", "ck") \
   set sc = ##class(App.Installer).setup() \
-  Do $system.OBJ.Load("/tmp/deps/zpm.xml", "ck") \
-  zn "IRISAPP" 
+  zn "IRISAPP"
   
-
 # bringing the standard shell back
 SHELL ["/bin/bash", "-c"]
 CMD [ "-l", "/usr/irissys/mgr/messages.log" ]
